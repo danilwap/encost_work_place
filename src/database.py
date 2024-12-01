@@ -1,47 +1,70 @@
-import asyncpg
-import asyncio
-from fastapi import Depends
+import os
+import pickle
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
-import os
-from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine, AsyncSession
-import datetime
-from sqlalchemy.future import select
-from sqlalchemy import text, MetaData, inspect, Table, create_engine
-from sqlalchemy.ext.declarative import declarative_base
 
-PG_USER, PG_PASS, PG_DATABASE, PG_HOST, PG_PORT = os.environ['PG_USER'], os.environ['PG_PASS'], os.environ[
-    'PG_DATABASE'], \
-    os.environ['PG_HOST'], os.environ['PG_PORT']
+from sqlalchemy import create_engine, Table, MetaData, inspect
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+from sqlalchemy.orm import declarative_base
+
+
+from dotenv import load_dotenv
+
+load_dotenv()  # Загружает в os.environ переменные из .env
+
+PG_DATABASE = os.environ.get('PG_DATABASE')
+PG_HOST = os.environ.get('PG_HOST')
+PG_PASS = os.environ.get('PG_PASS')
+PG_PORT = os.environ.get('PG_PORT')
+PG_USER = os.environ.get('PG_USER')
+
+all_endpoints = {}
+
 URL = f"postgresql+asyncpg://{PG_USER}:{PG_PASS}@{PG_HOST}:{PG_PORT}/{PG_DATABASE}"
-
-sync_engine = create_engine(URL.replace('+asyncpg', ''))
-
 engine = create_async_engine(URL)
+
 async_session = async_sessionmaker(
     bind=engine,
     class_=AsyncSession,
     expire_on_commit=False
 )
 
-metadata = MetaData()
-inspector = inspect(sync_engine)
 
-# Получаем список таблиц в указанной схеме
-tables = inspector.get_table_names(schema="parameters")
-print(tables)
-table_info = {}
+def save_metadata():
+    sync_engine = create_engine(URL.replace('+asyncpg', ''))
+    metadata = MetaData()
+    inspector = inspect(sync_engine)
 
-# Проходимся по всем таблицам и загружаем их
-for table_name in tables:
-    Table(table_name, metadata, autoload_with=sync_engine, schema="parameters")
+    # Получаем список таблиц в указанной схеме
+    tables = inspector.get_table_names(schema="parameters")
+    print(tables)
 
-Base = declarative_base(metadata=metadata)
+    for table_name in tables:
+        Table(table_name, metadata, autoload_with=sync_engine, schema='parameters')
+
+        # Сериализуем метаданные и сохраняем их в файл
+    with open('metadata.pkl', 'wb') as file:
+        pickle.dump(metadata, file)
+        print('Файл с данными метадата сохранён')
 
 
-class Operators(Base):
-    __table__ = metadata.tables["parameters.client_persons"]
+def load_or_create_metadata():
+    try:
+        # Попробовать загрузить ранее сохранённые метаданные
+        with open('metadata.pkl', 'rb') as file:
+            metadata = pickle.load(file)
 
+        print("Метаданные успешно загружены.")
+    except FileNotFoundError:
+        print("Файл с метаданными не найден. Создаём новые...")
+        save_metadata()
+        return load_or_create_metadata()  # Рекурсивная попытка загрузки после сохранения
+
+    Base = declarative_base(metadata=metadata)
+    return Base, metadata
+
+
+#----------------------------------- Module CRUD ------------------------------------------
 
 @asynccontextmanager
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
@@ -49,15 +72,22 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
         yield session
 
 
-async def test():
+async def get_data(query):
     async with get_db() as db:
-        result = await db.execute(select(Operators))
-        for i in result.scalars().all():
-            print(i)
+        try:
+            result = await db.execute(query)
+            return result
+        except Exception as ex:
+            return f"Произошла ошибка {ex}"
 
-        # res = await db.execute(text("select * from spider.endpoints"))
-        # for i in res:
-        #    print(i)
+async def insert_data(query):
+    async with get_db() as db:
+        try:
+            await db.execute(query)
+            await db.commit()
+            return 'Новая запись добавлена'
+        except Exception as ex:
+            return f"Произошла ошибка {ex}"
 
 
-asyncio.run(test())
+Base, metadata = load_or_create_metadata()
