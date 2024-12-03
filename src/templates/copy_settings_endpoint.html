@@ -4,5 +4,46 @@
 {% endblock %}
 
 {% block content %}
-Тут будет логика копирования точек
+<h1 class="h1_main_content">Скопировать настройки точки</h1>
+
+<div class="grid-container">
+    <div class="square"><button onclick="loadData()">Endpoint_weight</button>
+    <div id="data-block"></div>
+
+    <script>
+        function loadData() {
+            // Отправляем запрос к нашему API-эндпоинту
+            fetch('/load_weight')
+                .then(response => response.json())
+                .then(data => {
+                    // Обновляем содержимое блока данными
+                    const block = document.getElementById('data-block');
+                    block.innerHTML = ''; // Очищаем блок перед добавлением новых данных
+
+                    data.items.forEach(item => {
+                        const div = document.createElement('div');
+                        div.textContent = `${item}`;
+                        block.appendChild(div);
+                    });
+                })
+                .catch(error => console.error('Error:', error));
+        }
+    </script></div>
+
+
+
+    <div class="square">2</div>
+    <div class="square">3</div>
+    <div class="square">4</div>
+    <div class="square">5</div>
+    <div class="square">6</div>
+    <div class="square">7</div>
+    <div class="square">8</div>
+    <div class="square">9</div>
+    <div class="square">10</div>
+    <div class="square">11</div>
+    <div class="square">12</div>
+</div>
+
+
 {% endblock %}

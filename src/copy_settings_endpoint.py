@@ -9,7 +9,7 @@ from database import async_session, get_data, insert_data
 from sqlalchemy import func, create_engine, Table, MetaData, inspect, select, insert, null, delete, join, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.functions import now
-from models import *
+from models import EndpointWeights
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -283,6 +283,7 @@ async def get_source_endpoint_persons():
 
 
 async def get_max_weight():
+
     query = select(EndpointWeights).order_by(desc(EndpointWeights.weight))
     result = await get_data(query)
     return result.scalars().all()[0].weight if result else 1
@@ -417,4 +418,4 @@ async def main():
 # print(f'Результат: {res}')
 # Переделать под sql запрос
 
-asyncio.run(main())
+#asyncio.run(main())

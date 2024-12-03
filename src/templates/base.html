@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="/static/style.css">
     {% block head %}{% endblock %}
 
-    <title>Натрейдил</title>
+    <title>Энкост воркер</title>
 </head>
 <body>
 <div>
@@ -15,12 +15,12 @@
             <a href="/"><img src="{{ url_for('static', path='logo.svg') }}" alt="" width="200"></a>
         </ul>
         <ul class="flex">
-            <h1><b>Рабочее место Энкост</b></h1>
+            <h1><b>Энкост воркер</b></h1>
         </ul>
         <ul class="flex gap-5 mr-10">
             <li>
                 <div class="dropdown">
-                    <button class="dropbtn" onclick="myFunction()"> Что делаем?
+                    <button class="dropbtn" onclick="myFunction()"> Выбрать клиента
     <i class="fa fa-caret-down"></i>
   </button>
                     <div class="dropdown-content" id="myDropdown">
@@ -31,8 +31,19 @@
         </ul>
     </nav>
     <hr>
-    <div id="content">
-        {% block content %}{% endblock %}
+    <div class="wrapper">
+        <nav class="sidebar">
+            <ul>
+                <li><a href="/copy_settings_endpoint">Скопировать настройки точки</a></li>
+                <li><a href="#">Пункт 2</a></li>
+                <li><a href="#">Пункт 3</a></li>
+                <li><a href="#">Пункт 4</a></li>
+            </ul>
+        </nav>
+            <main class="content">
+            {% block content %}{% endblock %}
+            </main>
+        </div>
     </div>
 </div>
 

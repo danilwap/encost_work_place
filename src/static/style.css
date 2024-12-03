@@ -1,12 +1,13 @@
 /* Кнопка выпадающего списка */
 .dropbtn {
-  background-color: #3498DB;
+  background-color: #5199ff;
   color: white;
   padding: 16px;
   font-size: 16px;
   border: none;
   cursor: pointer;
 }
+
 
 /* Кнопка выпадающего меню при наведении и фокусировке */
 .dropbtn:hover, .dropbtn:focus {
@@ -43,3 +44,65 @@
 
 /* Показать выпадающее меню (используйте JS, чтобы добавить этот класс .dropdown-content содержимого, когда пользователь нажимает на кнопку выпадающего списка) */
 .show {display:block;}
+
+body {
+    background-color: #f0f0f0; /* Светло-серый фон */
+    color: #959595; /* Цвет шрифта */
+    margin: 0;
+            font-family: Arial, sans-serif;
+}
+
+.wrapper {
+    display: flex;
+    height: 100vh; /* Высота окна браузера */
+
+}
+
+.sidebar {
+    width: 250px; /* Ширина боковой панели */
+    padding: 20px;
+    background-color: #f0f0f0; /* Цвет фона боковой панели */
+    border: 1px solid #e5e7eb; /* Линия по периметру */
+}
+
+.content {
+    flex-grow: 1; /* Основная часть занимает оставшееся пространство */
+    padding: 20px;
+    overflow-y: auto; /* Прокрутка при необходимости */
+}
+
+
+* {
+    box-sizing: border-box; /* Учитываем padding и border в размерах */
+}
+
+.grid-container {
+    display: flex;
+    flex-wrap: wrap; /* Переносим квадраты на новые строки */
+    gap: 10px; /* Пробел между квадратами */
+    max-width: 800px; /* Ограничиваем максимальную ширину сетки */
+    margin: 0 auto; /* Центрируем сетку по горизонтали */
+}
+
+.square {
+    flex: 1 1 calc(33% - 10px); /* Каждый квадрат занимает 25% ширины минус пробелы */
+    aspect-ratio: 1 / 1; /* Соотношение сторон 1:1 для квадратных блоков */
+    background-color: white; /* Фоновый цвет квадрата */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    vertical-align: top;
+}
+
+.h1_main_content {
+    font-size: 26px;
+    text-align: center;
+}
+
+
+@media (max-width: 600px) {
+    .square {
+        flex-basis: calc(50% - 10px); /* На маленьких экранах делаем квадраты крупнее */
+    }
+}
