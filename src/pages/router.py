@@ -21,3 +21,7 @@ async def load_data():
 
     return {"items": [max_weight]}
 
+@router.get('/add_new_reason')
+async def load_data(request: Request):
+    return templates.TemplateResponse('add_new_reason.html', {'request': request})
+
