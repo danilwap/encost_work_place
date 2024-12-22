@@ -4,13 +4,15 @@ import os
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
-from fastapi import FastAPI
+
 from database import async_session, get_data, insert_data
 from sqlalchemy import func, create_engine, Table, MetaData, inspect, select, insert, null, delete, join, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.functions import now
 from models import EndpointWeights
 from dotenv import load_dotenv
+
+from models import *
 
 load_dotenv()
 
@@ -45,8 +47,6 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
     async with async_session() as session:
         yield session
 
-
-app = FastAPI(title='Рабочее место Энкост')
 
 
 async def get_all_endpoints():
@@ -381,6 +381,8 @@ async def main():
         assert 'Ручной выход'
     print(f'Результат: {res}')
 
+if __name__ == '__main__':
+    asyncio.run(main())
 
 
 
