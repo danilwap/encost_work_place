@@ -1,28 +1,49 @@
-import tkinter as tk
-from datetime import datetime
+import asyncio
+
+import uvicorn
+from fastapi import FastAPI
+from tools import get_all_active_endpoints, add_weight, del_weights, check_state_or_reason_tool
+from logging_create import logger
+
+# Добавить ручки:
+# 0) Проверка наличия состояния или причины простоя
+# 1) Добавление состояния
+# 2) Добавление причины простоя
+# 3) Добавление указание будущей причины простоя
+# 4) Добавление функции отправки сообщения о проблеме
+# 5) Добавление функции указания комментария к причине простоя
+# 6) Добавление создания тестовой точки
+# 7) Создания расписания
 
 
-def on_button_click():
-    print("Button clicked!")
-    console.insert(0.0, str(datetime.now()) + " Button clicked!\n")
 
 
-class Console(tk.Text):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+app = FastAPI()
+
+@app.get("/add_weights")
+async def add_weights():
+    all_endpoint_id = await get_all_active_endpoints()
+
+    status_del = await del_weights()
+    logger.info("Старые веса удалены")
+
+    if status_del == 200:
+        for weight, endpoint_id in enumerate(all_endpoint_id):
+            await add_weight(endpoint_id, weight + 1)
+        logger.info("Новые веса добавлены")
+    else:
+        return status_del
 
 
-root = tk.Tk()  # Обявление приложения
-root.geometry("400x300")  # Размер окна
-button = tk.Button(root, text="Добавить новую причину простоя!", command=on_button_click)
-button2 = tk.Button(root, text="Добавить новую причину простоя!", command=on_button_click)
+@app.get("/check_state_or_reason")
+async def check_state_or_reason(name: str):
+    res = await check_state_or_reason_tool(name)
+    if res == "Всё ок":
+        return res
+    else:
+        return res
 
-
-button.pack(row=0, column=0, padx=10, pady=10)
-button2.pack(row=0, column=1, padx=10, pady=10)
-
-console = Console(root)
-console.pack(row=1, column=0, columnspan=2)
 
 if __name__ == "__main__":
-    root.mainloop()
+    uvicorn.run(app)
+

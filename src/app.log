@@ -1,0 +1,15 @@
+2025-01-06 13:37:44,567 - INFO - Старые веса удалены
+2025-01-06 13:37:44,709 - INFO - Новые веса добавлены
+2025-01-07 15:20:13,544 - INFO - Старые веса удалены
+2025-01-07 15:20:14,669 - INFO - Новые веса добавлены
+2025-01-07 15:23:49,929 - INFO - <sqlalchemy.engine.result.ScalarResult object at 0x0000029A4E532800>
+2025-01-07 15:43:18,851 - INFO - [<models.EndpointStates object at 0x000001FB31BE6630>, <models.EndpointStates object at 0x000001FB31BE6600>, <models.EndpointStates object at 0x000001FB31BE65D0>, <models.EndpointStates object at 0x000001FB31BE65A0>, <models.EndpointStates object at 0x000001FB31BE6660>, <models.EndpointStates object at 0x000001FB31BE6690>, <models.EndpointStates object at 0x000001FB31BE66C0>, <models.EndpointStates object at 0x000001FB31BE66F0>, <models.EndpointStates object at 0x000001FB31BE6720>, <models.EndpointStates object at 0x000001FB31BE6750>, <models.EndpointStates object at 0x000001FB31BE6780>]
+2025-01-07 15:44:18,338 - INFO - Нет такого состояния: Обедик
+2025-01-07 15:48:30,237 - INFO - Нет такого состояния: Обедик
+2025-01-07 15:53:46,228 - INFO - Нет такого состояния: Обедик
+2025-01-07 15:54:02,931 - INFO - Нет такого состояния: Обедик
+2025-01-07 15:54:39,665 - INFO - Нет такого состояния: Обедик
+2025-01-07 15:55:34,239 - INFO - Нет такого состояния: Обедик
+2025-01-07 15:55:48,169 - INFO - Нет такого состояния: Обедик
+2025-01-07 15:55:57,217 - INFO - Нет такого состояния: Обедик
+2025-01-07 15:56:08,453 - INFO - Нет такого состояния: Обедик

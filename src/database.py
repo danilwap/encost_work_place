@@ -89,5 +89,13 @@ async def insert_data(query):
         except Exception as ex:
             return f"Произошла ошибка {ex}"
 
+async def delete_data(query):
+    async with get_db() as db:
+        try:
+            await db.execute(query)
+            await db.commit()
+            return 'Запись удалена'
+        except Exception as ex:
+            return f"Произошла ошибка {ex}"
 
 Base, metadata = load_or_create_metadata()

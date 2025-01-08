@@ -1,16 +1,14 @@
-import asyncio
-import datetime
 import os
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
 
-from database import async_session, get_data, insert_data
-from sqlalchemy import func, create_engine, Table, MetaData, inspect, select, insert, null, delete, join, desc
+from database import async_session, get_data, insert_data, delete_data
+from sqlalchemy import select, insert, null, delete, desc, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.functions import now
-from models import EndpointWeights
 from dotenv import load_dotenv
+from logging_create import logger
 
 from models import *
 
@@ -94,6 +92,17 @@ async def get_all_schedules():
         except Exception as ex:
             return f"Произошла ошибка {ex}"
 
+async def get_all_active_endpoints():
+    async with get_db() as db:
+        try:
+            query = select(EndpointFlags).where(EndpointFlags.is_visible == True)
+            result = await db.execute(query)
+            result = result.scalars().all()
+            result = [x.endpoint_id for x in result]
+            return result
+        except Exception as ex:
+            return f"Произошла ошибка {ex}"
+
 
 async def add_weight(endpoint_id, weight):
     query = insert(EndpointWeights).values(
@@ -106,6 +115,13 @@ async def add_weight(endpoint_id, weight):
     res = await insert_data(query)
     return res
 
+async def del_weights():
+    query = delete(EndpointWeights).where(EndpointWeights.client_id == 333)
+    try:
+        await delete_data(query)
+        return 200
+    except Exception as ex:
+        return f"Произошла ошибка {ex}"
 
 async def add_endpoint_states(new_endpoint, states):
     # Добавить id точки на которую переносим
@@ -283,106 +299,30 @@ async def get_source_endpoint_persons():
 
 
 async def get_max_weight():
-
     query = select(EndpointWeights).order_by(desc(EndpointWeights.weight))
     result = await get_data(query)
     return result.scalars().all()[0].weight if result else 1
 
 
-async def main():
-    print("Список всех точек:")
-    all_endpoints_res = await get_all_endpoints()
-    print(*[f"ID: {i.id}\nНазвание: {i.name}\n" for i in all_endpoints_res])
-    id_source, id_new = input('С какого id копируем и на какой переносим через пробел: ').split()
-
-    id_source, id_new = int(id_source), int(id_new)
-
-    # ----------------------------------endpoint_weights---------------------------------------
-    print('Добавляем веса, следующий после последнего')
-    max_weight = await get_max_weight()
-    print(f'Максимальный вес: {max_weight}')
-    res = await add_weight(id_new, max_weight + 1)
-    print(res)
-    #Дальше написать создание весов для новых точек
-
-    # ----------------------------------Endpoint_states---------------------------------------
-    ###Добавить считывание точки, откуда взято и динамический выбор столбцов, которые подтягивать
-    endpoint_states = await get_source_endpoint_state()
-    print(f"Собраны такие состояния, добавляем (y/n) {[x.state_name for x in endpoint_states]}")
-    step1 = input()
-
-    if step1 == 'y':
-       res = await add_endpoint_states(id_new, endpoint_states)
+async def check_state_or_reason_tool(name):
+    query = select(EndpointStates).where(EndpointStates.state_name == name)
+    result_state = await get_data(query)
+    list_answers = result_state.scalars().all()
+    if list_answers:
+        return 'Уже существует такое состояние'
     else:
-       assert 'Ручной выход'
-    print(f'Результат: {res}')
+        logger.info(f'Нет такого состояния: {name}')
 
-    # ----------------------------------Endpoint_persons---------------------------------------
-    ###Добавить считывание точки, откуда взято и динамический выбор столбцов, которые подтягивать
-    endpoint_persons = await get_source_endpoint_persons()
-    print(f"Собраны такие id операторов, добавляем (y/n) {[x.person_id for x in endpoint_persons]}")
-    step1 = input()
-
-    if step1 == 'y':
-       res = await add_endpoint_persons(id_new, endpoint_persons)
-    else:
-       assert 'Ручной выход'
-    print(f'Результат: {res}')
-
-    # ----------------------------------Endpoint_hierarchies---------------------------------------
-    ###Добавить считывание точки, откуда взято и динамический выбор столбцов, которые подтягивать
-    endpoint_hierarchies = await get_all_hierarchies()
-    print(f"У точки такая иерархия, добавляем (y/n) {[x.group for x in endpoint_hierarchies]}")
-    step1 = input()
-
-    if step1 == 'y':
-       res = await add_endpoint_hierarchies(id_new, endpoint_hierarchies)
-    else:
-       assert 'Ручной выход'
-    print(f'Результат: {res}')
-
-    # ----------------------------------Endpoint_schedules---------------------------------------
-    ###Добавить считывание точки, откуда взято и динамический выбор столбцов, которые подтягивать
-    endpoint_schedules = await get_all_schedules()
-    print(f"У точки такое id расписания, добавляем (y/n) {[x.schedule_id for x in endpoint_schedules]}")
-    step1 = input()
-
-    if step1 == 'y':
-        res = await add_endpoint_schedules(id_new, endpoint_schedules)
-    else:
-        assert 'Ручной выход'
-    print(f'Результат: {res}')
-
-    # ----------------------------------Endpoint_flags---------------------------------------
-    ###Добавить считывание точки, откуда взято и динамический выбор столбцов, которые подтягивать
-    endpoint_flags = await get_all_endpoint_flags()
-    print(f"У точки такое флаги, добавляем (y/n) {[x for x in endpoint_flags]}")
-    step1 = input()
-
-    if step1 == 'y':
-        res = await add_endpoint_flags(id_new, endpoint_flags)
-    else:
-        assert 'Ручной выход'
-    print(f'Результат: {res}')
+    return 'Всё ок'
 
 
 
 
 
-# ----------------------------------delivery_params---------------------------------------
-    ###Добавить считывание точки, откуда взято и динамический выбор столбцов, которые подтягивать
 
-    print(f"Делаем, чтобы точка начала писать в app? delivery_params")
-    step1 = input()
 
-    if step1 == 'y':
-        res = await add_delivery_params(id_new)
-    else:
-        assert 'Ручной выход'
-    print(f'Результат: {res}')
 
-if __name__ == '__main__':
-    asyncio.run(main())
+
 
 
 
@@ -420,4 +360,4 @@ if __name__ == '__main__':
 # print(f'Результат: {res}')
 # Переделать под sql запрос
 
-#asyncio.run(main())
+#asyncio.run(get_all_active_endpoints())
