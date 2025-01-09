@@ -46,62 +46,41 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
         yield session
 
 
+async def get_last_id_app():
+    query = select(AppMenu).order_by(desc(AppMenu.id)).limit(1)
+    result = await get_data(query)
+    return result
 
 async def get_all_endpoints():
-    async with get_db() as db:
-        try:
-            query = select(Endpoint).join(EndpointFlags, Endpoint.id == EndpointFlags.endpoint_id).where(
-                EndpointFlags.is_active == True, EndpointFlags.is_visible == True)
-            result = await db.execute(query)
-
-            return result.scalars().all()
-        except Exception as ex:
-            return f"Произошла ошибка {ex}"
+    query = select(Endpoint).join(EndpointFlags, Endpoint.id == EndpointFlags.endpoint_id).where(
+            EndpointFlags.is_active == True, EndpointFlags.is_visible == True)
+    result = await get_data(query)
+    return result
 
 
 async def get_all_hierarchies():
-    async with get_db() as db:
-        try:
-            query = select(EndpointHierarchies).where(EndpointHierarchies.endpoint_id == 4)
-            result = await db.execute(query)
-            result = result.scalars().all()
-            return result
-        except Exception as ex:
-            return f"Произошла ошибка {ex}"
+    query = select(EndpointHierarchies).where(EndpointHierarchies.endpoint_id == 4)
+    result = await get_data(query)
+    return result
 
 async def get_all_endpoint_flags():
-    async with get_db() as db:
-        try:
-            query = select(EndpointFlags).where(EndpointFlags.endpoint_id == 4)
-            result = await db.execute(query)
-            result = result.scalars().all()
-            return result
-        except Exception as ex:
-            return f"Произошла ошибка {ex}"
+    query = select(EndpointFlags).where(EndpointFlags.endpoint_id == 4)
+    result = await get_data(query)
+    return result
 
 
 
 async def get_all_schedules():
-    async with get_db() as db:
-        try:
-            query = select(EndpointSchedules).where(EndpointSchedules.endpoint_id == 4,
+    query = select(EndpointSchedules).where(EndpointSchedules.endpoint_id == 4,
                                                     EndpointSchedules.datetime_to == null())
-            result = await db.execute(query)
-            result = result.scalars().all()
-            return result
-        except Exception as ex:
-            return f"Произошла ошибка {ex}"
+    result = await get_data(query)
+    return result
+
 
 async def get_all_active_endpoints():
-    async with get_db() as db:
-        try:
-            query = select(EndpointFlags).where(EndpointFlags.is_visible == True)
-            result = await db.execute(query)
-            result = result.scalars().all()
-            result = [x.endpoint_id for x in result]
-            return result
-        except Exception as ex:
-            return f"Произошла ошибка {ex}"
+    query = select(EndpointFlags).where(EndpointFlags.is_visible == True)
+    result = await get_data(query)
+    return result
 
 
 async def add_weight(endpoint_id, weight):
@@ -123,35 +102,35 @@ async def del_weights():
     except Exception as ex:
         return f"Произошла ошибка {ex}"
 
-async def add_endpoint_states(new_endpoint, states):
+async def add_endpoint_states(name):
     # Добавить id точки на которую переносим
 
     list_answers = []
-    for state in states:
-        query = insert(EndpointStates).values(
-            client_id=state.client_id,
-            endpoint_id=new_endpoint,
-            state_name=state.state_name,
-            class_name=state.class_name,
-            menu_button=state.menu_button,
-            params=state.params,
-            source_states=state.source_states,
-            exclude_load=state.exclude_load,
-            show_in_total=state.show_in_total,
-            is_broken=state.is_broken,
-            is_repaired=state.is_repaired,
-            is_reduced_performance=state.is_reduced_performance,
-            is_blocking=state.is_blocking,
-            union_state=state.union_state,
-            layer=state.layer,
-            is_work=state.is_work,
-            state_color=state.state_color,
-            state_category=state.state_category,
-            button_params=state.button_params,
-            is_idle=state.is_idle,
-            is_manual=state.is_manual)
-        res = await insert_data(query)
-        list_answers.append(res)
+
+    query = insert(EndpointStates).values(
+        client_id=333,
+        endpoint_id=20,
+        state_name=name,
+        class_name=null(),
+        menu_button=null(),
+        params={},
+        source_states=["Работа", "Простой", "Отключено", "Пусковой ток", "Холостой ход", "Обесточено"],
+        exclude_load=False,
+        show_in_total=True,
+        is_broken=null(),
+        is_repaired=null(),
+        is_reduced_performance=null(),
+        is_blocking=null(),
+        union_state=null(),
+        layer=null(),
+        is_work=False,
+        state_color="#101010",
+        state_category=null(),
+        button_params={},
+        is_idle=False,
+        is_manual=True)
+    res = await insert_data(query)
+    list_answers.append(res)
     return list_answers
 
 
@@ -306,8 +285,7 @@ async def get_max_weight():
 
 async def check_state_or_reason_tool(name):
     query = select(EndpointStates).where(EndpointStates.state_name == name)
-    result_state = await get_data(query)
-    list_answers = result_state.scalars().all()
+    list_answers = await get_data(query)
     if list_answers:
         return 'Уже существует такое состояние'
     else:

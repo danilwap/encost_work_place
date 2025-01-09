@@ -76,7 +76,7 @@ async def get_data(query):
     async with get_db() as db:
         try:
             result = await db.execute(query)
-            return result
+            return result.scalars().all()
         except Exception as ex:
             return f"Произошла ошибка {ex}"
 

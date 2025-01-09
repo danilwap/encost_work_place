@@ -35,6 +35,9 @@ class EndpointSchedules(Base):
     __table__ = metadata.tables["parameters.endpoint_schedules"]
 
 
+class AppMenu(Base):
+    __table__ = metadata.tables["parameters.app_menu"]
+
 
 class DeliveryParams(Base):
     __table__ = metadata.tables["parameters.delivery_params"]
