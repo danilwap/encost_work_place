@@ -293,9 +293,38 @@ async def check_state_or_reason_tool(name):
 
     return 'Всё ок'
 
+async def chech_priviligeis(name_table):
+    query = text(f"SELECT has_table_privilege(CURRENT_USER, '{name_table}', 'SELECT');")
+    res = await get_data(query)
+    return res
 
 
-
+"""
+Запрос для добавления будущей причины простоя:
+insert into parameters.app_menu
+values(
+(select max(id) from parameters.app_menu) + 1,
+'{
+  "menu": [
+    {
+      "bar": {
+        "title": "Доп. функции",
+        "buttons": [
+          {
+            "title": "Указать будущую причину простоя",
+            "Действия": [
+              {
+                "method": "set_next_idle_reason",
+                "minutes_till_state": 5
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}'
+)"""
 
 
 
